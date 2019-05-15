@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+
 namespace VendingMachine {
     public interface IOrder {
 
@@ -45,7 +47,7 @@ namespace VendingMachine {
     public class Order : IOrder {
         private static ulong lastOrderNumber = ulong.MaxValue;
         public ulong OrderNumber { get; } = ++lastOrderNumber;
-        private readonly IObservable<OrderComponent> orderComponents = ;
+        private readonly IEnumerable<OrderComponent> orderComponents = new List<OrderComponent>();
         public Order() {
 
         }
