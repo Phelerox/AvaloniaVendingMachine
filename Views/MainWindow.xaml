@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:VendingMachine.ViewModels;assembly=VendingMachine"
+        xmlns:vm="clr-namespace:VendingMachine.ViewModels"
+        xmlns:v="clr-namespace:VendingMachine.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -12,6 +13,12 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <DockPanel>
+        <Button DockPanel.Dock="Bottom">Exit</Button>
+        <StackPanel Orientation="Vertical">
+            <TextBlock Text="{Binding VendingMachineMallGreeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <v:VendingMachineView/>
+        </StackPanel>
+    </DockPanel>
 
 </Window>
