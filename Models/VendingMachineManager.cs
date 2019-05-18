@@ -30,12 +30,12 @@ namespace VendingMachine {
                 (observer => {
                     foreach (var productInInitialStock in this.products) {
                         observer.OnNext(productInInitialStock);
-                        stockStatus.WatchValue(productInInitialStock.product.GetHashCode()).Where(p => p.Quantity <= 5).Throttle(new TimeSpan(0, 0, 14)).Subscribe(p => observer.OnNext((p.Product, 20 - p.Quantity)));
+                        stockStatus.WatchValue(productInInitialStock.product.GetHashCode()).Where(p => p.Quantity <= 5).Throttle(new TimeSpan(0, 0, 8))
+                            .Subscribe(p =>
+                                observer.OnNext((p.Product, productInInitialStock.quantity - p.Quantity)));
                     }
                     //observer.OnCompleted();
                     return Disposable.Create(() => Console.WriteLine("Observer has unsubscribed"));
-                    //or can return an Action like
-                    //return () => Console.WriteLine("Observer has unsubscribed");
                 });
         }
     }

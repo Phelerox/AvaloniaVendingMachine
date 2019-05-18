@@ -25,9 +25,6 @@ namespace VendingMachine {
             var window = new MainWindow {
                 DataContext = new MainWindowViewModel(),
             };
-            IVendingMachineManager manager = new CocaColaVendingMachineManager();
-            IVendingMachine machine = new VendingMachine(manager, Currency.SEK, 25);
-
             app.Run(window);
         }
     }

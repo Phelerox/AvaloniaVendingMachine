@@ -1,14 +1,46 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:VendingMachine.ViewModels"
+             xmlns:v="clr-namespace:VendingMachine.Views"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="VendingMachine.Views.VendingMachineView">
+  <!-- <Window.Resources>
+    <local: x:Key="myConverter"/>
+  </Window.Resources>
+
+  <TextBlock Text="{Binding Value, Converter={StaticResource myConverter}}"/> -->
+
   <DockPanel>
     <Button DockPanel.Dock="Bottom">Finalize Order</Button>
     <StackPanel>
-      <ButtonSpinner Margin="4">Coca-cola</ButtonSpinner>
-      <ButtonSpinner Margin="4">Fanta</ButtonSpinner>
+      <!-- <ButtonSpinner Margin="4">Coca-cola</ButtonSpinner>
+      <ButtonSpinner Margin="4">Fanta</ButtonSpinner> -->
+      <!-- <ListBox Items="{Binding StockedProducts, Mode=OneWay}"/> -->
+        <ScrollViewer Name="ProductsScrollViewer">
+          <ItemsControl
+              Classes="ProductList"
+              Items="{Binding StockedProducts, Mode=OneWay}"
+              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl.Template>
+            <ControlTemplate TargetType="{x:Type ItemsControl}">
+                <ScrollViewer>
+                    <ItemsPresenter Name="ProductPresenter"
+                                    Items="{TemplateBinding Items}"
+                                    ItemsPanel="{TemplateBinding ItemsPanel}"
+                                    ItemTemplate="{TemplateBinding ItemTemplate}"
+                                    MemberSelector="{TemplateBinding MemberSelector}"/>
+                </ScrollViewer>
+          </ControlTemplate>
+            </ItemsControl.Template>
+              <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                      <VirtualizingStackPanel Orientation="Vertical" Margin="5" />
+                  </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+          </ItemsControl>
+        </ScrollViewer>
     </StackPanel>
   </DockPanel>
 </UserControl>

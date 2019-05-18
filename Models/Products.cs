@@ -55,6 +55,10 @@ namespace VendingMachine {
             Template = false;
         }
 
+        public override string ToString() {
+            return Name;
+        }
+
         public abstract IProduct Clone();
     }
 

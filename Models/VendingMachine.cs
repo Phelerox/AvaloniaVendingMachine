@@ -17,16 +17,14 @@ namespace VendingMachine {
     }
 
     public class VendingMachine : IVendingMachine {
-        private readonly IObservableCache<StockedProduct, int> _stockCache;
         private readonly IVendingMachineManager _op;
-        private SourceCache<StockedProduct, int> _stock = new SourceCache<StockedProduct, int>((p) => p.GetHashCode());
-        public IObservable<IChangeSet<StockedProduct, int>> StockStatus => _stock.Connect();
+        private SourceCache<StockedProduct, int> _stock = new SourceCache<StockedProduct, int>((p) => p.Product.GetHashCode());
+        public IObservable<IChangeSet<StockedProduct, int>> StockStatus => _stock.AsObservableCache().Connect();
 
         private readonly Currency Currency;
         private readonly uint MaxCapacityPerProduct;
 
         public VendingMachine(IVendingMachineManager op, Currency currency, uint maxCapacityPerProduct) {
-            _stockCache = _stock.AsObservableCache();
             Currency = currency;
             MaxCapacityPerProduct = maxCapacityPerProduct;
 
@@ -35,7 +33,7 @@ namespace VendingMachine {
             //   (It would be caught at compile-time)
             //To have IVendingMachineOperator be nullable,
             //I'd have to declare it as IVendingMachineOperator?
-            _op.SetupVendingMachine(_stockCache).Subscribe(StockProduct);
+            _op.SetupVendingMachine(_stock.AsObservableCache()).Subscribe(StockProduct);
         }
 
         private void StockProduct((IProduct product, uint quantity)p) {
@@ -47,6 +45,7 @@ namespace VendingMachine {
                 _stock.Lookup(p.product.GetHashCode()).Value.Restock(p.quantity);
             } else {
                 _stock.AddOrUpdate(new StockedProduct(p.product, p.quantity, MaxCapacityPerProduct));
+                _stock.Lookup(p.product.GetHashCode()).Value.DeliverProduct(15);
             }
         }
     }

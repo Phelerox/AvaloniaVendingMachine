@@ -17,7 +17,7 @@
         <Button DockPanel.Dock="Bottom">Exit</Button>
         <StackPanel Orientation="Vertical">
             <TextBlock Text="{Binding VendingMachineMallGreeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <v:VendingMachineView/>
+            <v:VendingMachineView />
         </StackPanel>
     </DockPanel>
 
