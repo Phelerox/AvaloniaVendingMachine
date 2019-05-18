@@ -46,6 +46,7 @@ namespace VendingMachine {
             } else {
                 _stock.AddOrUpdate(new StockedProduct(p.product, p.quantity, MaxCapacityPerProduct));
                 _stock.Lookup(p.product.GetHashCode()).Value.DeliverProduct(15);
+
             }
         }
     }

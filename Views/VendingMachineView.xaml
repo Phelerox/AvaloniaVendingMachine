@@ -19,12 +19,13 @@
       <ButtonSpinner Margin="4">Fanta</ButtonSpinner> -->
       <!-- <ListBox Items="{Binding StockedProducts, Mode=OneWay}"/> -->
         <ScrollViewer Name="ProductsScrollViewer">
-          <ItemsControl
+          <HeaderedSelectingItemsControl
               Classes="ProductList"
               Items="{Binding StockedProducts, Mode=OneWay}"
-              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-          <ItemsControl.Template>
-            <ControlTemplate TargetType="{x:Type ItemsControl}">
+              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+              Header="Products">
+          <HeaderedSelectingItemsControl.Template>
+            <ControlTemplate TargetType="{x:Type HeaderedSelectingItemsControl}">
                 <ScrollViewer>
                     <ItemsPresenter Name="ProductPresenter"
                                     Items="{TemplateBinding Items}"
@@ -33,13 +34,13 @@
                                     MemberSelector="{TemplateBinding MemberSelector}"/>
                 </ScrollViewer>
           </ControlTemplate>
-            </ItemsControl.Template>
-              <ItemsControl.ItemsPanel>
+            </HeaderedSelectingItemsControl.Template>
+              <HeaderedSelectingItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
                       <VirtualizingStackPanel Orientation="Vertical" Margin="5" />
                   </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-          </ItemsControl>
+              </HeaderedSelectingItemsControl.ItemsPanel>
+          </HeaderedSelectingItemsControl>
         </ScrollViewer>
     </StackPanel>
   </DockPanel>
