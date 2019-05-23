@@ -26,9 +26,9 @@ namespace VendingMachine {
         public readonly double Servings;
         protected double RemainingServings { get; set; }
         public bool StillUsable { get; protected set; }
-        public string Name { get; private set; }
-        public string Description { get; private set; }
-        public double RecommendedRetailPrice { get; private set; }
+        public string Name { get; }
+        public string Description { get; }
+        public double RecommendedRetailPrice { get; }
         protected readonly bool Template;
 
         public abstract string Use();

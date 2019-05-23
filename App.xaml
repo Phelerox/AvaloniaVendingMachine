@@ -1,22 +1,23 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:VendingMachine"
+             xmlns:ge="clr-namespace:GridExtra.Avalonia;assembly=GridExtra.Avalonia"
              x:Class="VendingMachine.App">
+    <Application.Resources>
+            <local:StockedProductConverter x:Key="StockedProductConverter"/>
+    </Application.Resources>
     <Application.DataTemplates>
         <local:ViewLocator/>
-    <DataTemplate DataType="{x:Type local:StockedProduct}">
-    <!-- TODO: <ItemsPresenter></ItemsPresenter> -->
-      <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto">
-        <TextBlock Grid.Row="0" Grid.Column="0">Type:</TextBlock>
-        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Product.Name}"/>
-        <TextBlock Grid.Row="1" Grid.Column="0">In stock:</TextBlock>
-        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Quantity}"/>
-      </Grid>
-    </DataTemplate>
     </Application.DataTemplates>
 
     <Application.Styles>
     <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default"/>
     <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseDark.xaml?assembly=Avalonia.Themes.Default"/>
+    <Style Selector=".Standard">
+        <Setter Property="ContentControl.Padding" Value="14 14 14 14"/>
+    </Style>
+    <Style Selector=".BackgroundHoverEffect:pointerover">
+        <!-- <Setter Property="Border.Background" Value="Pink"/> unreliable :(-->
+    </Style>
     </Application.Styles>
 </Application>

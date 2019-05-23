@@ -7,16 +7,17 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="VendingMachine.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
-        Title="VendingMachine">
+        Title="VendingMachine"
+        MinHeight="400" MinWidth="460">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
     <DockPanel>
-        <Button DockPanel.Dock="Bottom">Exit</Button>
+        <Button Classes="Standard" HorizontalAlignment="Center" Width="100" DockPanel.Dock="Bottom">Exit</Button>
         <StackPanel Orientation="Vertical">
-            <TextBlock Text="{Binding VendingMachineMallGreeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Classes="Standard" Text="{Binding VendingMachineMallGreeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <v:VendingMachineView />
         </StackPanel>
     </DockPanel>

@@ -15,7 +15,12 @@ using VendingMachine.ViewModels;
 namespace VendingMachine.Views {
     public class VendingMachineView : ReactiveUserControl<VendingMachineViewModel> {
         public VendingMachineViewModel VendingMachineViewModel => new VendingMachineViewModel();
+
         public VendingMachineView() {
+            // var template = new FuncDataTemplate<Student>(x =>
+            //     new TextBlock {
+            //         [!TextBlock.TextProperty] = new Binding("FirstName"),
+            //     });
             InitializeComponent();
         }
 
@@ -25,8 +30,11 @@ namespace VendingMachine.Views {
                 //this.BindCommand(ViewModel, x => x.StockedProducts, x => x.ProductList)
                 //    .DisposeWith(disposables);
                 DataContext = VendingMachineViewModel;
+                NumericUpDown.ValueProperty.Changed.AddClassHandler<NumericUpDown>(x => ((VendingMachineViewModel)this.ViewModel).CartItemChanged);
+
             });
             AvaloniaXamlLoader.Load(this);
         }
+
     }
 }

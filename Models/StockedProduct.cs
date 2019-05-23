@@ -7,10 +7,12 @@ using ReactiveUI.Fody.Helpers;
 namespace VendingMachine {
     public class StockedProduct : ReactiveObject {
         [Reactive] public uint Quantity { get; private set; }
+
+        public int QuantityAsInt { get { return (int)Quantity; } }
         public readonly uint MaxCapacity;
         public IProduct Product { get; }
 
-        public StockedProduct(IProduct product, uint quantity, uint maxCapacity) {
+        public StockedProduct(IProduct product, uint quantity, uint maxCapacity = UInt32.MaxValue) {
             Product = product;
             Quantity = quantity;
             MaxCapacity = maxCapacity;
