@@ -25,7 +25,8 @@ namespace VendingMachine.ViewModels {
         private ObservableAsPropertyHelper<IReadOnlyCollection<StockedProduct>> ? stockedProducts;
         public IReadOnlyCollection<StockedProduct> ? StockedProducts => stockedProducts?.Value;
         public Dictionary<IProduct, int> ShoppingCart = new Dictionary<IProduct, int>();
-        private IObserver < IReadOnlyCollection < (IProduct product, uint quantity) >> ? orderReceiver;
+        private IObserver < (Customer customer, IReadOnlyCollection < (IProduct product, uint quantity) > cart) > ? orderReceiver;
+        private Customer Customer { get; } = new Customer();
         [Reactive] public int ProductsInCart { get; private set; }
 
         public string VendingMachineGreeting => "Welcome to the Vending Machine!";
@@ -38,8 +39,8 @@ namespace VendingMachine.ViewModels {
             //TODO: Would be so cool to then showcase the power of the reactive paradigm by allowing instant reservations (time-limited?) of the stock in a user's cart, preventing other users from buying it.
             //TODO: For bonus points, it wouldn't be very hard to use different threads.
             VendingMachine = new VendingMachine(manager, Currency.SEK, 25);
-            VendingMachine.NewIncomingStreamOfOrders(Observable.Create < IReadOnlyCollection < (IProduct product, uint quantity) >>(
-                (IObserver < IReadOnlyCollection < (IProduct product, uint quantity) >> observer) => {
+            VendingMachine.NewIncomingStreamOfOrders(Observable.Create < (Customer customer, IReadOnlyCollection < (IProduct product, uint quantity) > cart) > (
+                (IObserver < (Customer customer, IReadOnlyCollection < (IProduct product, uint quantity) > cart) > observer) => {
                     if (orderReceiver == null) {
                         orderReceiver = observer;
                     } else {
@@ -52,7 +53,7 @@ namespace VendingMachine.ViewModels {
 
             Activator = new ViewModelActivator();
             DoInsertCoin = ReactiveCommand.Create<int>(RunInsertCoin);
-            var canPlaceOrder = this.WhenAnyValue(
+            var canPlaceOrder = this.WhenAnyValue( //TODO: check total cost
                 x => x.ProductsInCart,
                 (productsInCart) =>
                 productsInCart > 0);
@@ -101,7 +102,7 @@ namespace VendingMachine.ViewModels {
                 order.Add((item.Key, (uint)item.Value));
             }
 
-            orderReceiver?.OnNext(order.AsReadOnly());
+            orderReceiver?.OnNext((Customer, order.AsReadOnly()));
             //TODO: Reset all NumericUpDown values to 0. Might need to do a proper databinding for the value to a collection Property in the ViewModel. https://stackoverflow.com/questions/15380466/xaml-binding-a-collection-within-a-datatemplate
         }
 

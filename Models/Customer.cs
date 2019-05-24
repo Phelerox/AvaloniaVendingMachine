@@ -13,7 +13,6 @@ namespace VendingMachine {
 
         public string StartConsuming(IEnumerable<IProduct> boughtProducts) {
             string consumptionMessages = "";
-            Console.WriteLine("wut)");
             foreach (var product in boughtProducts) {
                 string consumptionMessage = string.Concat(product.UseItAll());
                 consumptionMessages += consumptionMessage;

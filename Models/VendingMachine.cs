@@ -51,11 +51,13 @@ namespace VendingMachine {
             }
         }
 
-        public void NewIncomingStreamOfOrders(IObservable < IReadOnlyCollection < (IProduct product, uint quantity) >> incomingOrders) {
+        public void NewIncomingStreamOfOrders(IObservable < (Customer customer, IReadOnlyCollection < (IProduct product, uint quantity) > cart) > incomingOrders) {
             incomingOrders.Subscribe(ProcessOrder);
         }
 
-        private void ProcessOrder(IReadOnlyCollection < (IProduct product, uint quantity) > cart) {
+        private void ProcessOrder((Customer customer, IReadOnlyCollection < (IProduct product, uint quantity) > cart)incomingOrder) {
+            Customer customer = incomingOrder.customer;
+            var cart = incomingOrder.cart;
             if (cart.Count <= 0) {
                 throw new Exception("Can't process an empty order!");
             }
@@ -64,16 +66,15 @@ namespace VendingMachine {
                 var stockedProduct = _stock.Lookup(item.product.GetHashCode()).ValueOrThrow(() => new MissingKeyException($"{item.product}"));
                 productsToDeliver.Add(stockedProduct.DeliverProduct(item.quantity));
             }
-            var mockedCustomer = new Customer();
             List<Order> customerOrders;
 
-            if (!orders.TryGetValue(mockedCustomer, out customerOrders)) {
+            if (!orders.TryGetValue(customer, out customerOrders)) {
                 var newList = new List<Order>();
-                orders[mockedCustomer] = newList;
+                orders[customer] = newList;
                 customerOrders = newList;
             }
-            customerOrders.Add(new Order(cart, mockedCustomer, 0.25M));
-            mockedCustomer.StartConsuming(productsToDeliver);
+            customerOrders.Add(new Order(cart, customer, 0.25M));
+            customer.StartConsuming(productsToDeliver);
         }
 
     }
