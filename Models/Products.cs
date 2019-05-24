@@ -7,7 +7,7 @@ namespace VendingMachine {
         bool StillUsable { get; }
         string Name { get; }
         string Description { get; }
-        double RecommendedRetailPrice { get; }
+        decimal RecommendedRetailPrice { get; }
 
         string Use();
         IEnumerable<string> UseItAll();
@@ -28,7 +28,7 @@ namespace VendingMachine {
         public bool StillUsable { get; protected set; }
         public string Name { get; }
         public string Description { get; }
-        public double RecommendedRetailPrice { get; }
+        public decimal RecommendedRetailPrice { get; }
         protected readonly bool Template;
 
         public abstract string Use();
@@ -41,7 +41,7 @@ namespace VendingMachine {
             return useDescriptions;
         }
 
-        public Product(string name, string description, double recommendedRetailPrice, double servings) {
+        public Product(string name, string description, decimal recommendedRetailPrice, double servings) {
             this.Name = name;
             this.Description = description;
             this.RecommendedRetailPrice = recommendedRetailPrice;
@@ -69,17 +69,17 @@ namespace VendingMachine {
             if (!base.StillUsable) {
                 throw new ProductUseException("It's empty!");
             } else if (base.RemainingServings == 1) {
-                useDescription = "You drink the rest of the {Name}.";
+                useDescription = $"You drink the rest of the {Name}.";
             } else if (base.RemainingServings > 0 && base.RemainingServings < 1) {
-                useDescription = "You drink the very last sip of the {Name}.";
+                useDescription = $"You drink the very last sip of the {Name}.";
             } else {
-                useDescription = "You drink from the {Name}.";
+                useDescription = $"You drink from the {Name}.";
             }
             base.StillUsable = --base.RemainingServings > 0;
             return useDescription;
         }
 
-        public Drink(string name, string description, double recommendedRetailPrice, double servings) : base(name, description, recommendedRetailPrice, servings) { }
+        public Drink(string name, string description, decimal recommendedRetailPrice, double servings) : base(name, description, recommendedRetailPrice, servings) { }
 
         protected Drink(Drink drink) : base((Product)drink) { }
 

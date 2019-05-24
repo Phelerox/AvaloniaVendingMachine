@@ -9,11 +9,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="VendingMachine.Views.VendingMachineView"
              xmlns:sys="clr-namespace:System;assembly=mscorlib">
-  <!-- <Window.Resources>
-    <local: x:Key="myConverter"/>
-  </Window.Resources>
 
-  <TextBlock Text="{Binding Value, Converter={StaticResource myConverter}}"/> -->
 <UserControl.DataTemplates>
   <DataTemplate DataType="{x:Type local:StockedProduct}">
       <ge:ResponsiveGrid Classes="BackgroundHoverEffect">
@@ -21,7 +17,7 @@
           <Border Classes="Common Description BackgroundHoverEffect"><TextBlock Text="{Binding Path=Product.Description}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
           <Border Classes="Common QuantityInStock BackgroundHoverEffect"><TextBlock Text="{Binding Path=Quantity}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
           <Border Classes="Common QuantityToOrder BackgroundHoverEffect">
-            <NumericUpDown Minimum="0" Maximum="{Binding Path=Quantity}" ButtonSpinnerLocation="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Tag="{Binding Product}">
+            <NumericUpDown Minimum="0" Maximum="{Binding Path=Quantity}" ClipValueToMinMax="True" ButtonSpinnerLocation="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Tag="{Binding Product}">
               <!-- <NumericUpDown.Value>
                 <MultiBinding Target="ShoppingCart" Mode="OneWay" Converter="{StaticResource StockedProductConverter}">
                   <Binding ElementName="Product"></Binding>
@@ -70,7 +66,7 @@
     </Button>
     </ge:ResponsiveGrid>
     </Grid>
-    <Button Classes="Standard" HorizontalAlignment="Center" Width="100" DockPanel.Dock="Bottom">Place Order</Button>
+    <Button Classes="Standard" HorizontalAlignment="Center" Width="100" DockPanel.Dock="Bottom" Command="{Binding DoPlaceOrder}" >Place Order</Button>
     <StackPanel>
         <ScrollViewer Name="ProductsScrollViewer">
           <Grid>

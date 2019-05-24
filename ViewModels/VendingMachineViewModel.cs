@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Disposables;
-// using System.Reactive.Linq;
+using System.Reactive.Linq;
 using System.Text;
 
 using Avalonia;
@@ -17,14 +17,16 @@ using DynamicData;
 using Microsoft.CSharp.RuntimeBinder;
 
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace VendingMachine.ViewModels {
     public class VendingMachineViewModel : ViewModelBase, ISupportsActivation {
         private VendingMachine VendingMachine { get; set; }
         private ObservableAsPropertyHelper<IReadOnlyCollection<StockedProduct>> ? stockedProducts;
         public IReadOnlyCollection<StockedProduct> ? StockedProducts => stockedProducts?.Value;
-        private IDictionary<IProduct, int> shoppingCart = new Dictionary<IProduct, int>();
-        public IReadOnlyDictionary<IProduct, int> ShoppingCart = shoppingCart.AsReadOnlyCollection();
+        public Dictionary<IProduct, int> ShoppingCart = new Dictionary<IProduct, int>();
+        private IObserver < IReadOnlyCollection < (IProduct product, uint quantity) >> ? orderReceiver;
+        [Reactive] public int ProductsInCart { get; private set; }
 
         public string VendingMachineGreeting => "Welcome to the Vending Machine!";
 
@@ -33,14 +35,28 @@ namespace VendingMachine.ViewModels {
         public VendingMachineViewModel() {
             IVendingMachineManager manager = new CocaColaVendingMachineManager();
             //TODO: Have a customer associated with each ViewModel, so that I could have two VendingMachineViews in MainWindow that each have different backing ViewModels and Customers.
-            //TODO: Would be so cool to then showcase the power of the reactive paradigm by allowing instant reservations (time-limited?) of the stock in a user's cart, preventing other users from buying it. 
+            //TODO: Would be so cool to then showcase the power of the reactive paradigm by allowing instant reservations (time-limited?) of the stock in a user's cart, preventing other users from buying it.
+            //TODO: For bonus points, it wouldn't be very hard to use different threads.
             VendingMachine = new VendingMachine(manager, Currency.SEK, 25);
+            VendingMachine.NewIncomingStreamOfOrders(Observable.Create < IReadOnlyCollection < (IProduct product, uint quantity) >>(
+                (IObserver < IReadOnlyCollection < (IProduct product, uint quantity) >> observer) => {
+                    if (orderReceiver == null) {
+                        orderReceiver = observer;
+                    } else {
+                        throw new Exception();
+                    }
+                    return Disposable.Create(() => Console.WriteLine("Observer has unsubscribed"));
+                }));
+
             var ObservingStockDisposable = VendingMachine.StockStatus.ToCollection().ToProperty(source: this, property: p => p.StockedProducts, out stockedProducts!);
 
             Activator = new ViewModelActivator();
             DoInsertCoin = ReactiveCommand.Create<int>(RunInsertCoin);
-            DoUpdateCart = ReactiveCommand.Create<object>(RunUpdateCart);
-            DoPlaceOrder = ReactiveCommand.Create<int>(RunPlaceOrder);
+            var canPlaceOrder = this.WhenAnyValue(
+                x => x.ProductsInCart,
+                (productsInCart) =>
+                productsInCart > 0);
+            DoPlaceOrder = ReactiveCommand.Create(RunPlaceOrder, canPlaceOrder);
             this.WhenActivated(disposables => {
                 // Handle ViewModel activation and deactivation.
                 Disposable.Create(() => this.HandleDeactivation()).DisposeWith(disposables);
@@ -49,8 +65,7 @@ namespace VendingMachine.ViewModels {
         }
 
         public ReactiveCommand<int, Unit> DoInsertCoin { get; }
-        public ReactiveCommand<object, Unit> DoUpdateCart { get; }
-        public ReactiveCommand<int, Unit> DoPlaceOrder { get; }
+        public ReactiveCommand<Unit, Unit> DoPlaceOrder { get; }
 
         void RunInsertCoin(int denomination) {
             throw new NotImplementedException();
@@ -58,35 +73,36 @@ namespace VendingMachine.ViewModels {
 
         public void CartItemChanged(AvaloniaPropertyChangedEventArgs e) {
             NumericUpDown spinner = (NumericUpDown)e.Sender;
-            // ... Get Value.
-            // ... Set Window Title.
             IProduct product = (IProduct)spinner.Tag;
             int quantity = (int)spinner.Value;
+            int oldQuantity;
+            bool alreadyInCart = ShoppingCart.TryGetValue(product, out oldQuantity);
             if (quantity <= 0) {
-                shoppingCart.Remove(product);
+                ProductsInCart -= oldQuantity;
+                ShoppingCart.Remove(product);
             } else {
-                shoppingCart[product] = quantity;
+                ProductsInCart += (quantity - oldQuantity);
+                ShoppingCart[product] = quantity;
+            }
+            //Debugging section:
+            if (ShoppingCart.Keys.Count == 0 && ProductsInCart != 0) {
+                throw new Exception("Critical invariant does not hold!");
             }
             Console.WriteLine($"Updated item in Shopping Cart: {product} {quantity}");
-            foreach (var cartItem in shoppingCart) {
+            foreach (var cartItem in ShoppingCart) {
                 if (cartItem.Key != product)
                     Console.WriteLine($"Rest of Shopping Cart: {cartItem.Key} {cartItem.Value}");
             }
-
         }
 
-        void RunUpdateCart(object parameters) {
-            var parameterTuple = (Tuple<object, object>)parameters;
-            (IProduct product, int quantity) = ((IProduct)parameterTuple.Item1, (int)parameterTuple.Item2);
-            if (quantity <= 0) {
-                shoppingCart.Remove(product);
-            } else {
-                shoppingCart[product] = quantity;
+        void RunPlaceOrder() {
+            var order = new List < (IProduct product, uint quantity) > (ShoppingCart.Keys.Count);
+            foreach (var item in ShoppingCart) {
+                order.Add((item.Key, (uint)item.Value));
             }
-        }
 
-        void RunPlaceOrder(int something) {
-
+            orderReceiver?.OnNext(order.AsReadOnly());
+            //TODO: Reset all NumericUpDown values to 0. Might need to do a proper databinding for the value to a collection Property in the ViewModel. https://stackoverflow.com/questions/15380466/xaml-binding-a-collection-within-a-datatemplate
         }
 
         private void HandleDeactivation() {

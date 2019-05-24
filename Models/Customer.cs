@@ -1,11 +1,27 @@
 using System;
+using System.Collections.Generic;
 using System.Reactive;
 
 namespace VendingMachine {
     public class Customer {
-        public IObservable<OrderComponent> StartConsuming() {
-            throw new NotImplementedException();
-            //return Observable.Create();
+        private readonly List<IProduct> consumedProducts = new List<IProduct>();
+        public IEnumerable<IProduct> ConsumedProducts { get { return consumedProducts.AsReadOnly(); } }
+
+        public Customer() {
+
+        }
+
+        public string StartConsuming(IEnumerable<IProduct> boughtProducts) {
+            string consumptionMessages = "";
+            Console.WriteLine("wut)");
+            foreach (var product in boughtProducts) {
+                string consumptionMessage = string.Concat(product.UseItAll());
+                consumptionMessages += consumptionMessage;
+                Console.WriteLine(consumptionMessage);
+                consumedProducts.Add(product);
+            }
+
+            return consumptionMessages;
         }
     }
 }

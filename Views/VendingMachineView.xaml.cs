@@ -17,19 +17,14 @@ namespace VendingMachine.Views {
         public VendingMachineViewModel VendingMachineViewModel => new VendingMachineViewModel();
 
         public VendingMachineView() {
-            // var template = new FuncDataTemplate<Student>(x =>
-            //     new TextBlock {
-            //         [!TextBlock.TextProperty] = new Binding("FirstName"),
-            //     });
             InitializeComponent();
         }
 
         private void InitializeComponent() {
             this.WhenActivated(disposables => {
-                // Bind the 'ExampleCommand' to 'ExampleButton' defined above.
-                //this.BindCommand(ViewModel, x => x.StockedProducts, x => x.ProductList)
-                //    .DisposeWith(disposables);
                 DataContext = VendingMachineViewModel;
+                //It took me a long time to figure out how to achieve what the line below does
+                //it will notify the CartItemChanged method in the ViewModel whenever *any* NumericUpDown instance changes.
                 NumericUpDown.ValueProperty.Changed.AddClassHandler<NumericUpDown>(x => ((VendingMachineViewModel)this.ViewModel).CartItemChanged);
 
             });
