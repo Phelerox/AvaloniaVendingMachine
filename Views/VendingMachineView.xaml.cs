@@ -25,7 +25,7 @@ namespace VendingMachine.Views {
                 DataContext = VendingMachineViewModel;
                 //It took me a long time to figure out how to achieve what the line below does
                 //it will notify the CartItemChanged method in the ViewModel whenever *any* NumericUpDown instance changes.
-                NumericUpDown.ValueProperty.Changed.AddClassHandler<NumericUpDown>(x => ((VendingMachineViewModel)this.ViewModel).CartItemChanged);
+                NumericUpDown.ValueProperty.Changed.AddClassHandler<NumericUpDown>(x => ((VendingMachineViewModel)this.ViewModel).CartItemChanged).DisposeWith(disposables);
 
             });
             AvaloniaXamlLoader.Load(this);

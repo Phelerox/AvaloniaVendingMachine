@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
+using VendingMachine;
 
 namespace VendingMachine {
 
@@ -7,11 +10,14 @@ namespace VendingMachine {
         bool StillUsable { get; }
         string Name { get; }
         string Description { get; }
+        decimal ManufacturingCost { get; }
+        decimal WholesalePrice { get; }
         decimal RecommendedRetailPrice { get; }
-
+        decimal RetailPrice { get; }
+        decimal RetailPriceWithVAT { get; }
         string Use();
         IEnumerable<string> UseItAll();
-        IProduct Clone();
+        IProduct CloneForNewOwner(ILegalEntity owner);
     }
 
     public class ProductUseException : Exception {
@@ -23,12 +29,21 @@ namespace VendingMachine {
     }
 
     public abstract class Product : IProduct {
+        public ILegalEntity ? Owner { get; private set; } = null;
         public readonly double Servings;
         protected double RemainingServings { get; set; }
         public bool StillUsable { get; protected set; }
         public string Name { get; }
         public string Description { get; }
+        protected virtual decimal WholesaleMarkupFactor { get; } = 1.2m;
+        protected virtual decimal SuggestedStoreMarkupFactor { get; } = 1.2m;
+        protected virtual decimal ExtraStoreMarkupFactor { get; } = 1.0m;
+        public decimal ManufacturingCost { get; }
+        public decimal WholesalePrice { get; }
         public decimal RecommendedRetailPrice { get; }
+        public decimal RetailPrice { get; }
+        public decimal RetailPriceWithVAT { get; }
+
         protected readonly bool Template;
 
         public abstract string Use();
@@ -41,17 +56,27 @@ namespace VendingMachine {
             return useDescriptions;
         }
 
-        public Product(string name, string description, decimal recommendedRetailPrice, double servings) {
+        public Product(string name, string description, decimal manufacturingCost, double servings, [Optional] decimal extraStoreMarkupFactor, [Optional] ILegalEntity ? owner) {
             this.Name = name;
             this.Description = description;
-            this.RecommendedRetailPrice = recommendedRetailPrice;
+            this.ManufacturingCost = manufacturingCost;
+            this.ExtraStoreMarkupFactor = extraStoreMarkupFactor;
+            this.WholesalePrice = ManufacturingCost * WholesaleMarkupFactor;
+            this.RecommendedRetailPrice = WholesalePrice * SuggestedStoreMarkupFactor;
+            this.RetailPrice = RecommendedRetailPrice * ExtraStoreMarkupFactor;
             this.Servings = servings;
+            this.Owner = owner;
+            if ((Owner != null && Owner.GetType().IsAssignableFrom(typeof(VendingMachine)))) {
+                RetailPriceWithVAT = RetailPrice * VendingMachine.VAT;
+            } else {
+                RetailPriceWithVAT = RetailPrice * VendingMachine.VAT;
+            }
             RemainingServings = servings;
             StillUsable = RemainingServings > 0;
             Template = true;
         }
 
-        protected Product(Product product) : this(product.Name, product.Description, product.RecommendedRetailPrice, product.Servings) {
+        protected Product(Product product, ILegalEntity owner) : this(product.Name, product.Description, product.ManufacturingCost, product.Servings, product.ExtraStoreMarkupFactor, owner) {
             Template = false;
         }
 
@@ -59,7 +84,7 @@ namespace VendingMachine {
             return Name;
         }
 
-        public abstract IProduct Clone();
+        public abstract IProduct CloneForNewOwner(ILegalEntity owner);
     }
 
     public class Drink : Product {
@@ -79,15 +104,15 @@ namespace VendingMachine {
             return useDescription;
         }
 
-        public Drink(string name, string description, decimal recommendedRetailPrice, double servings) : base(name, description, recommendedRetailPrice, servings) { }
+        public Drink(string name, string description, decimal manufacturingCost, double servings, [Optional] decimal extraStoreMarkupFactor, [Optional] ILegalEntity ? owner) : base(name, description, manufacturingCost, servings, extraStoreMarkupFactor, owner!) { }
 
-        protected Drink(Drink drink) : base((Product)drink) { }
+        protected Drink(Drink drink, ILegalEntity owner) : base((Product)drink, owner) { }
 
-        public override IProduct Clone() {
+        public override IProduct CloneForNewOwner(ILegalEntity owner) {
             if (!base.Template) {
-                throw new ProductUseException("Customers are not allowed to materialize Products out of nothing!");
+                throw new ProductUseException("Owners are not allowed to materialize Products out of nothing!");
             }
-            return new Drink(this);
+            return new Drink(this, owner);
         }
     }
 }

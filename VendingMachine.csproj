@@ -27,5 +27,6 @@
     <PackageReference Include="System.Reactive.Compatibility" Version="*"/>
     <PackageReference Include="Avalonia.Xaml.Behaviors" Version="*"/>
     <PackageReference Include="ReactiveProperty" Version="*"/>
+    <PackageReference Include="ReactiveUI" Version="10.0.1-preview.3"/>
   </ItemGroup>
 </Project>

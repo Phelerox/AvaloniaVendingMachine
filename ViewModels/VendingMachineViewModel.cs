@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -13,11 +15,14 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Reactive;
 
 using DynamicData;
+using DynamicData.Cache;
 
 using Microsoft.CSharp.RuntimeBinder;
 
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+
+using VendingMachine;
 
 namespace VendingMachine.ViewModels {
     public class VendingMachineViewModel : ViewModelBase, ISupportsActivation {
@@ -27,7 +32,28 @@ namespace VendingMachine.ViewModels {
         public Dictionary<IProduct, int> ShoppingCart = new Dictionary<IProduct, int>();
         private IObserver < (Customer customer, IReadOnlyCollection < (IProduct product, uint quantity) > cart) > ? orderReceiver;
         private Customer Customer { get; } = new Customer();
-        [Reactive] public int ProductsInCart { get; private set; }
+
+        private decimal moneyBalance = 100;
+        public decimal MoneyBalance {
+            get => moneyBalance;
+            set => this.RaiseAndSetIfChanged(ref moneyBalance, value);
+        }
+
+        private decimal costOfCart = 0;
+        public decimal CostOfCart {
+            get => costOfCart;
+            set => this.RaiseAndSetIfChanged(ref costOfCart, value);
+        }
+
+        private int productsInCart = 0;
+        public int ProductsInCart {
+            get => productsInCart;
+            set => this.RaiseAndSetIfChanged(ref productsInCart, value);
+        }
+
+        public decimal TotalSpent { get; private set; } = 0;
+
+        public decimal ProfitFromRounding { get; private set; } = 0;
 
         public string VendingMachineGreeting => "Welcome to the Vending Machine!";
 
@@ -53,10 +79,10 @@ namespace VendingMachine.ViewModels {
 
             Activator = new ViewModelActivator();
             DoInsertCoin = ReactiveCommand.Create<int>(RunInsertCoin);
-            var canPlaceOrder = this.WhenAnyValue( //TODO: check total cost
-                x => x.ProductsInCart,
-                (productsInCart) =>
-                productsInCart > 0);
+            var canPlaceOrder = this.WhenAnyValue(
+                x => x.ProductsInCart, x => x.MoneyBalance, x => x.CostOfCart,
+                (inCart, money, cost) =>
+                inCart > 0 && (cost <= money));
             DoPlaceOrder = ReactiveCommand.Create(RunPlaceOrder, canPlaceOrder);
             this.WhenActivated(disposables => {
                 // Handle ViewModel activation and deactivation.
@@ -69,15 +95,26 @@ namespace VendingMachine.ViewModels {
         public ReactiveCommand<Unit, Unit> DoPlaceOrder { get; }
 
         void RunInsertCoin(int denomination) {
-            throw new NotImplementedException();
+            CashOfDenomination den = (CashOfDenomination)denomination;
+            bool found = false;
+            for (int i = 0; i < VendingMachine.MoneyDenominations.Length; i++) {
+                found = den == VendingMachine.MoneyDenominations[i] || found;
+            }
+
+            if (!found) {
+                throw new Exception("Invalid Money Denomination!");
+            }
+            if (Customer.Pay(denomination)) {
+                MoneyBalance += denomination;
+            }
         }
 
         public void CartItemChanged(AvaloniaPropertyChangedEventArgs e) {
             NumericUpDown spinner = (NumericUpDown)e.Sender;
             IProduct product = (IProduct)spinner.Tag;
+            Console.WriteLine(product);
             int quantity = (int)spinner.Value;
-            int oldQuantity;
-            bool alreadyInCart = ShoppingCart.TryGetValue(product, out oldQuantity);
+            int oldQuantity = ShoppingCart.ContainsKey(product) ? ShoppingCart[product] : 0;
             if (quantity <= 0) {
                 ProductsInCart -= oldQuantity;
                 ShoppingCart.Remove(product);
@@ -85,6 +122,8 @@ namespace VendingMachine.ViewModels {
                 ProductsInCart += (quantity - oldQuantity);
                 ShoppingCart[product] = quantity;
             }
+
+            CostOfCart += (quantity - oldQuantity) * product.RetailPriceWithVAT;
             //Debugging section:
             if (ShoppingCart.Keys.Count == 0 && ProductsInCart != 0) {
                 throw new Exception("Critical invariant does not hold!");
@@ -99,11 +138,36 @@ namespace VendingMachine.ViewModels {
         void RunPlaceOrder() {
             var order = new List < (IProduct product, uint quantity) > (ShoppingCart.Keys.Count);
             foreach (var item in ShoppingCart) {
-                order.Add((item.Key, (uint)item.Value));
+                if (item.Value > 0) {
+                    order.Add((item.Key, (uint)item.Value));
+                }
             }
+            orderReceiver?.OnNext((Customer, order.AsReadOnly())); //TODO: Pass in an Action<bool> that will set cart state and so on depending on if the order succeeds
+            //Check this out: https://stackoverflow.com/questions/23483910/best-way-to-get-an-iobservablet-from-actiont
 
-            orderReceiver?.OnNext((Customer, order.AsReadOnly()));
-            //TODO: Reset all NumericUpDown values to 0. Might need to do a proper databinding for the value to a collection Property in the ViewModel. https://stackoverflow.com/questions/15380466/xaml-binding-a-collection-within-a-datatemplate
+            foreach (var orderedItem in order) {
+                ShoppingCart[orderedItem.product] = 0;
+            }
+            ProductsInCart = 0;
+
+            MoneyBalance -= CostOfCart;
+            TotalSpent += CostOfCart;
+            CostOfCart = 0;
+            List<CashOfDenomination> change = new List<CashOfDenomination>();
+            Console.WriteLine($"Total Change: {MoneyBalance}");
+            foreach (int denomination in Enum.GetValues(typeof(CashOfDenomination)).Cast<int>().OrderByDescending(x => x)) {
+                Console.Write($"Coins of denomination: {denomination} : ");
+                int coins = 0;
+                while (MoneyBalance >= denomination) {
+                    MoneyBalance -= denomination;
+                    change.Add((CashOfDenomination)denomination);
+                    coins++;
+                }
+                Console.WriteLine($"{coins}");
+            }
+            Customer.ReceiveChange(change);
+            ProfitFromRounding += MoneyBalance;
+            MoneyBalance = 0;
         }
 
         private void HandleDeactivation() {

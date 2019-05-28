@@ -20,7 +20,7 @@ namespace VendingMachine {
         public IEnumerable < (IProduct product, uint quantity) > Items {
             get { return OrderComponents.Select(c => ((c.Product, (uint)c.Quantity))); }
         }
-        private Customer Customer { get; }
+        public readonly Customer Customer;
         public decimal TotalPrice { get; }
         public decimal TotalPriceWithVAT { get; }
 
@@ -34,7 +34,7 @@ namespace VendingMachine {
             decimal totalPrice = 0;
 
             foreach (var component in this.OrderComponents) {
-                totalPrice += component.Product.RecommendedRetailPrice * component.Quantity;
+                totalPrice += component.Product.RetailPrice * component.Quantity;
             }
             TotalPrice = totalPrice;
             TotalPriceWithVAT = TotalPriceWithCustomVAT(vatRate);
@@ -77,6 +77,19 @@ namespace VendingMachine {
                 }
             }
 
+        }
+
+        public override string ToString() {
+            string description = $@"Order: {OrderNumber}
+                    Customer: {Customer.ToString()}";
+
+            foreach (var component in OrderComponents) {
+                description += $"Item: {component.Product.ToString()} | Qty: {component.Quantity}" +
+                    $"| Subtotal = {component.Product.RetailPrice * component.Quantity} \n";
+            }
+            description += $"Total cost w / o VAT: { TotalPrice }\n ";
+            description += $"Total cost w VAT: { TotalPriceWithVAT }\n ";
+            return description;
         }
     }
 }

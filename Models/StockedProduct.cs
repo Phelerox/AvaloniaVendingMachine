@@ -25,14 +25,14 @@ namespace VendingMachine {
             Quantity += quantity;
         }
 
-        public IEnumerable<IProduct> DeliverProduct(uint quantity) {
+        public IEnumerable<IProduct> PackageProductFor(ILegalEntity customer, uint quantity) {
             var products = new List<IProduct>();
             if (quantity > Quantity) {
                 throw new ArgumentOutOfRangeException("You don't have that many stocked!");
             }
             Quantity -= quantity;
             for (int i = 0; i < quantity; i++) {
-                products.Add(Product.Clone());
+                products.Add(Product.CloneForNewOwner(customer));
             }
             return products;
         }
