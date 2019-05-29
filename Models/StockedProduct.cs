@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Reactive;
+using System.Reactive.Linq;
 
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -8,7 +10,11 @@ namespace VendingMachine {
     public class StockedProduct : ReactiveObject {
         [Reactive] public uint Quantity { get; private set; }
 
-        public int QuantityAsInt { get { return (int)Quantity; } }
+        public IObservable<int> QuantityAsInt {
+            get {
+                return this.WhenAnyValue(x => x.Quantity).Select(x => ((int)x));
+            }
+        }
         public readonly uint MaxCapacity;
         public IProduct Product { get; }
 

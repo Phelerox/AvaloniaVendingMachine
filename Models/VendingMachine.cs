@@ -4,8 +4,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Reactive.Disposables;
 
 using DynamicData;
+
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using static DynamicData.Kernel.OptionExtensions;
 
 namespace VendingMachine {
@@ -27,31 +31,45 @@ namespace VendingMachine {
         Tusenlapp = 1000,
     }
 
-    public class VendingMachine : ILegalEntity {
+    public class VendingMachine : ReactiveObject, ILegalEntity {
         public static readonly CashOfDenomination[] MoneyDenominations = new CashOfDenomination[] {
             CashOfDenomination.Enkrona, CashOfDenomination.Femkrona, CashOfDenomination.Tiokrona, CashOfDenomination.Tjugolapp,
             CashOfDenomination.Femtiolapp, CashOfDenomination.Hundralapp, CashOfDenomination.Femhundralapp, CashOfDenomination.Tusenlapp
         };
         private readonly IVendingMachineManager manager;
-        private SourceCache<StockedProduct, int> _stock = new SourceCache<StockedProduct, int>((p) => p.Product.GetHashCode());
+        private readonly SourceCache<StockedProduct, int> _stock = new SourceCache<StockedProduct, int>((p) => p.Product.GetHashCode());
         public IObservable<IChangeSet<StockedProduct, int>> StockStatus => _stock.AsObservableCache().Connect();
         public static readonly decimal VAT = 0.25M;
-        public decimal Income { get; private set; } = 0;
-        public decimal Expenses { get; private set; } = 0;
-        public decimal Profit => Income - Expenses;
-        public decimal ProfitExcludingCurrentStockOutlay => Profit + _stock.Items.Select(sp => sp.Product.WholesalePrice * sp.Quantity).Aggregate<decimal>((acc, nextValue) => acc + nextValue);
+        [Reactive] public decimal Income { get; private set; }
 
-        private Dictionary<Customer, List<Order>> orders = new Dictionary<Customer, List<Order>>();
+        [Reactive] public decimal Expenses { get; private set; }
+        public decimal Profit => ProfitHelper.Value;
+        private readonly ObservableAsPropertyHelper<decimal> ProfitHelper;
+        [Reactive] public decimal ProfitExcludingCurrentStockOutlay { get; private set; }
+
+        private readonly Dictionary<Customer, List<Order>> orders = new Dictionary<Customer, List<Order>>();
         public IReadOnlyCollection<Order> OrdersBy(Customer customer) {
             return orders[customer].AsReadOnly();
         }
-        private readonly Currency Currency;
+        public readonly Currency Currency;
         private readonly uint MaxCapacityPerProduct;
 
+        public IDisposable UpdateProfitExcludingCurrentStockOutlaySubscriptionFactory() {
+            UpdateProfitExcludingCurrentStockOutlay();
+            return Disposable.Empty;
+        }
+
+        public decimal UpdateProfitExcludingCurrentStockOutlay() {
+            ProfitExcludingCurrentStockOutlay = Profit + _stock.Items.Select(sp => sp.Product.WholesalePrice * sp.Quantity).Aggregate<decimal>((acc, nextValue) => acc + nextValue);
+            return ProfitExcludingCurrentStockOutlay;
+        }
+
         public VendingMachine(IVendingMachineManager manager, Currency currency, uint maxCapacityPerProduct) {
+            ProfitHelper = this.WhenAnyValue(x => x.Income, x => x.Expenses, (income, expenses) => income - expenses).ToProperty(source: this, property: x => x.Profit);
+            StockStatus.SubscribeMany((_) => UpdateProfitExcludingCurrentStockOutlaySubscriptionFactory());
+            this.ObservableForProperty(x => x.Profit).Subscribe(x => UpdateProfitExcludingCurrentStockOutlay());
             Currency = currency;
             MaxCapacityPerProduct = maxCapacityPerProduct;
-
             this.manager = manager;
             //No need to worry about null because of C# 8.0.
             //   (It would be caught at compile-time)
@@ -98,7 +116,7 @@ namespace VendingMachine {
             }
             var order = new Order(cart, customer, VAT);
             customerOrders.Add(order);
-            Income += order.TotalPrice;
+            Income += order.TotalPrice; //Excluding VAT
             customer.ReceivePurchase(productsToDeliver);
             customer.ConsumeEverything();
 

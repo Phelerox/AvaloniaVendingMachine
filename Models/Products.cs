@@ -42,8 +42,8 @@ namespace VendingMachine {
         public decimal WholesalePrice { get; }
         public decimal RecommendedRetailPrice { get; }
         public decimal RetailPrice { get; }
-        public decimal RetailPriceWithVAT { get; }
-
+        public decimal RetailPriceWithVAT => RetailPrice * (1 + VAT);
+        public decimal VAT { get; private set; }
         protected readonly bool Template;
 
         public abstract string Use();
@@ -56,7 +56,7 @@ namespace VendingMachine {
             return useDescriptions;
         }
 
-        public Product(string name, string description, decimal manufacturingCost, double servings, [Optional] decimal extraStoreMarkupFactor, [Optional] ILegalEntity ? owner) {
+        public Product(string name, string description, decimal manufacturingCost, double servings, decimal vatRate, [Optional] decimal extraStoreMarkupFactor, [Optional] ILegalEntity ? owner) {
             this.Name = name;
             this.Description = description;
             this.ManufacturingCost = manufacturingCost;
@@ -66,17 +66,13 @@ namespace VendingMachine {
             this.RetailPrice = RecommendedRetailPrice * ExtraStoreMarkupFactor;
             this.Servings = servings;
             this.Owner = owner;
-            if ((Owner != null && Owner.GetType().IsAssignableFrom(typeof(VendingMachine)))) {
-                RetailPriceWithVAT = RetailPrice * VendingMachine.VAT;
-            } else {
-                RetailPriceWithVAT = RetailPrice * VendingMachine.VAT;
-            }
+            this.VAT = vatRate;
             RemainingServings = servings;
             StillUsable = RemainingServings > 0;
             Template = true;
         }
 
-        protected Product(Product product, ILegalEntity owner) : this(product.Name, product.Description, product.ManufacturingCost, product.Servings, product.ExtraStoreMarkupFactor, owner) {
+        protected Product(Product product, ILegalEntity owner) : this(product.Name, product.Description, product.ManufacturingCost, product.Servings, product.VAT, product.ExtraStoreMarkupFactor, owner) {
             Template = false;
         }
 
@@ -104,7 +100,7 @@ namespace VendingMachine {
             return useDescription;
         }
 
-        public Drink(string name, string description, decimal manufacturingCost, double servings, [Optional] decimal extraStoreMarkupFactor, [Optional] ILegalEntity ? owner) : base(name, description, manufacturingCost, servings, extraStoreMarkupFactor, owner!) { }
+        public Drink(string name, string description, decimal manufacturingCost, double servings, decimal vatRate, [Optional] decimal extraStoreMarkupFactor, [Optional] ILegalEntity ? owner) : base(name, description, manufacturingCost, servings, vatRate, extraStoreMarkupFactor, owner!) { }
 
         protected Drink(Drink drink, ILegalEntity owner) : base((Product)drink, owner) { }
 

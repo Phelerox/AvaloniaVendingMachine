@@ -26,14 +26,14 @@ using VendingMachine;
 
 namespace VendingMachine.ViewModels {
     public class VendingMachineViewModel : ViewModelBase, ISupportsActivation {
-        private VendingMachine VendingMachine { get; set; }
-        private ObservableAsPropertyHelper<IReadOnlyCollection<StockedProduct>> ? stockedProducts;
+        public VendingMachine BackingMachine { get; private set; }
+        private readonly ObservableAsPropertyHelper<IReadOnlyCollection<StockedProduct>> ? stockedProducts;
         public IReadOnlyCollection<StockedProduct> ? StockedProducts => stockedProducts?.Value;
         public Dictionary<IProduct, int> ShoppingCart = new Dictionary<IProduct, int>();
         private IObserver < (Customer customer, IReadOnlyCollection < (IProduct product, uint quantity) > cart) > ? orderReceiver;
-        private Customer Customer { get; } = new Customer();
+        private Customer Customer { get; } = new Customer(1100m);
 
-        private decimal moneyBalance = 100;
+        private decimal moneyBalance = 0;
         public decimal MoneyBalance {
             get => moneyBalance;
             set => this.RaiseAndSetIfChanged(ref moneyBalance, value);
@@ -64,8 +64,8 @@ namespace VendingMachine.ViewModels {
             //TODO: Have a customer associated with each ViewModel, so that I could have two VendingMachineViews in MainWindow that each have different backing ViewModels and Customers.
             //TODO: Would be so cool to then showcase the power of the reactive paradigm by allowing instant reservations (time-limited?) of the stock in a user's cart, preventing other users from buying it.
             //TODO: For bonus points, it wouldn't be very hard to use different threads.
-            VendingMachine = new VendingMachine(manager, Currency.SEK, 25);
-            VendingMachine.NewIncomingStreamOfOrders(Observable.Create < (Customer customer, IReadOnlyCollection < (IProduct product, uint quantity) > cart) > (
+            BackingMachine = new VendingMachine(manager, Currency.SEK, 25);
+            BackingMachine.NewIncomingStreamOfOrders(Observable.Create < (Customer customer, IReadOnlyCollection < (IProduct product, uint quantity) > cart) > (
                 (IObserver < (Customer customer, IReadOnlyCollection < (IProduct product, uint quantity) > cart) > observer) => {
                     if (orderReceiver == null) {
                         orderReceiver = observer;
@@ -75,15 +75,28 @@ namespace VendingMachine.ViewModels {
                     return Disposable.Create(() => Console.WriteLine("Observer has unsubscribed"));
                 }));
 
-            var ObservingStockDisposable = VendingMachine.StockStatus.ToCollection().ToProperty(source: this, property: p => p.StockedProducts, out stockedProducts!);
+            var ObservingStockDisposable = BackingMachine.StockStatus.ToCollection().ToProperty(source: this, property: p => p.StockedProducts, out stockedProducts!);
 
             Activator = new ViewModelActivator();
-            DoInsertCoin = ReactiveCommand.Create<int>(RunInsertCoin);
             var canPlaceOrder = this.WhenAnyValue(
                 x => x.ProductsInCart, x => x.MoneyBalance, x => x.CostOfCart,
                 (inCart, money, cost) =>
                 inCart > 0 && (cost <= money));
             DoPlaceOrder = ReactiveCommand.Create(RunPlaceOrder, canPlaceOrder);
+
+            Func<int, IObservable<bool>> CanInsertCoin = ((denomination) => this.WhenAnyValue(
+                x => x.Customer.Money,
+                (money) =>
+                money >= denomination));
+
+            DoInsertCoin1 = ReactiveCommand.Create<int>(RunInsertCoin, CanInsertCoin(1));
+            DoInsertCoin5 = ReactiveCommand.Create<int>(RunInsertCoin, CanInsertCoin(5));
+            DoInsertCoin10 = ReactiveCommand.Create<int>(RunInsertCoin, CanInsertCoin(10));
+            DoInsertCoin20 = ReactiveCommand.Create<int>(RunInsertCoin, CanInsertCoin(20));
+            DoInsertCoin50 = ReactiveCommand.Create<int>(RunInsertCoin, CanInsertCoin(50));
+            DoInsertCoin100 = ReactiveCommand.Create<int>(RunInsertCoin, CanInsertCoin(100));
+            DoInsertCoin500 = ReactiveCommand.Create<int>(RunInsertCoin, CanInsertCoin(500));
+            DoInsertCoin1000 = ReactiveCommand.Create<int>(RunInsertCoin, CanInsertCoin(1000));
             this.WhenActivated(disposables => {
                 // Handle ViewModel activation and deactivation.
                 Disposable.Create(() => this.HandleDeactivation()).DisposeWith(disposables);
@@ -91,7 +104,14 @@ namespace VendingMachine.ViewModels {
             });
         }
 
-        public ReactiveCommand<int, Unit> DoInsertCoin { get; }
+        public ReactiveCommand<int, Unit> DoInsertCoin1 { get; }
+        public ReactiveCommand<int, Unit> DoInsertCoin5 { get; }
+        public ReactiveCommand<int, Unit> DoInsertCoin10 { get; }
+        public ReactiveCommand<int, Unit> DoInsertCoin20 { get; }
+        public ReactiveCommand<int, Unit> DoInsertCoin50 { get; }
+        public ReactiveCommand<int, Unit> DoInsertCoin100 { get; }
+        public ReactiveCommand<int, Unit> DoInsertCoin500 { get; }
+        public ReactiveCommand<int, Unit> DoInsertCoin1000 { get; }
         public ReactiveCommand<Unit, Unit> DoPlaceOrder { get; }
 
         void RunInsertCoin(int denomination) {

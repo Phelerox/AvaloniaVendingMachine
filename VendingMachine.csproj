@@ -23,10 +23,10 @@
     <PackageReference Include="DynamicData" Version="6.9.1.2588"/>
     <PackageReference Include="ReactiveUI.Fody" Version="10.0.1-preview.3"/>
     <PackageReference Include="ReactiveUI.Validation" Version="1.2.1"/>
-    <PackageReference Include="GridExtra.Avalonia" Version="*"/>
     <PackageReference Include="System.Reactive.Compatibility" Version="*"/>
     <PackageReference Include="Avalonia.Xaml.Behaviors" Version="*"/>
     <PackageReference Include="ReactiveProperty" Version="*"/>
     <PackageReference Include="ReactiveUI" Version="10.0.1-preview.3"/>
+    <PackageReference Include="GridExtra.Avalonia" Version="0.6.1"/>
   </ItemGroup>
 </Project>

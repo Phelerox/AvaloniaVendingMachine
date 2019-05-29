@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+
 using VendingMachine;
 
 namespace VendingMachine {
@@ -10,8 +13,8 @@ namespace VendingMachine {
         // IEnumerable<IProduct> Owns { get; }
     }
 
-    public class Customer : ILegalEntity {
-        public decimal Money { get; private set; } = 1000;
+    public class Customer : ReactiveObject, ILegalEntity {
+        [Reactive] public decimal Money { get; private set; }
         private readonly List<IProduct> consumedProducts = new List<IProduct>();
         private readonly List<IProduct> unusedProducts = new List<IProduct>();
         public IEnumerable<IProduct> ConsumedProducts { get { return consumedProducts.AsReadOnly(); } }
@@ -24,8 +27,8 @@ namespace VendingMachine {
             }
         }
 
-        public Customer() {
-
+        public Customer(decimal money) {
+            Money = money;
         }
 
         public bool Pay(decimal price) {

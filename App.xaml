@@ -13,8 +13,8 @@
     <Application.Styles>
     <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default"/>
     <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseDark.xaml?assembly=Avalonia.Themes.Default"/>
-    <Style Selector=".Standard">
-        <Setter Property="ContentControl.Padding" Value="14 14 14 14"/>
+    <Style Selector="Button.Standard">
+        <Setter Property="Padding" Value="8 8 8 8"/>
     </Style>
     <Style Selector=".BackgroundHoverEffect:pointerover">
         <!-- <Setter Property="Border.Background" Value="Pink"/> unreliable :(-->

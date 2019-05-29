@@ -10,81 +10,44 @@
              x:Class="VendingMachine.Views.VendingMachineView"
              xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-<UserControl.DataTemplates>
-  <DataTemplate DataType="{x:Type local:StockedProduct}">
-      <ge:ResponsiveGrid Classes="BackgroundHoverEffect">
-          <Border Classes="Common Name BackgroundHoverEffect"><TextBlock Text="{Binding Path=Product.Name}" HorizontalAlignment="Left" VerticalAlignment="Center"/></Border>
-          <Border Classes="Common Description BackgroundHoverEffect"><TextBlock Text="{Binding Path=Product.Description}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-          <Border Classes="Common QuantityInStock BackgroundHoverEffect"><TextBlock Text="{Binding Path=Quantity}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-          <Border Classes="Common QuantityToOrder BackgroundHoverEffect">
-            <NumericUpDown Minimum="0" Maximum="{Binding Path=Quantity}" ClipValueToMinMax="True" ButtonSpinnerLocation="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Tag="{Binding Product}">
-              <!-- <NumericUpDown.Value>
-                <MultiBinding Target="ShoppingCart" Mode="OneWay" Converter="{StaticResource StockedProductConverter}">
-                  <Binding ElementName="Product"></Binding>
-                  <Binding ElementName="Value"></Binding>
-                </MultiBinding>
-              </NumericUpDown.Value> -->
-            </NumericUpDown>
-          </Border>
-      </ge:ResponsiveGrid>
-  </DataTemplate>
-</UserControl.DataTemplates>
-  <DockPanel>
-    <Grid Classes="Standard" DockPanel.Dock="Top">
-    <ge:ResponsiveGrid>
-    <Button Classes="Standard" ge:ResponsiveGrid.XS="1" Command="{Binding DoInsertCoin}">
-        <Button.CommandParameter><sys:Int32>1</sys:Int32></Button.CommandParameter>
-        1:-
-    </Button>
-    <Button Classes="Standard" ge:ResponsiveGrid.XS="1" Command="{Binding DoInsertCoin}">
-        <Button.CommandParameter><sys:Int32>5</sys:Int32></Button.CommandParameter>
-        5:-
-    </Button>
-    <Button Classes="Standard" ge:ResponsiveGrid.XS="1" Command="{Binding DoInsertCoin}">
-        <Button.CommandParameter><sys:Int32>10</sys:Int32></Button.CommandParameter>
-        10:-
-    </Button>
-    <Button Classes="Standard" ge:ResponsiveGrid.XS="1" Command="{Binding DoInsertCoin}">
-        <Button.CommandParameter><sys:Int32>20</sys:Int32></Button.CommandParameter>
-        20:-
-    </Button>
-    <Button Classes="Standard" ge:ResponsiveGrid.XS="1" Command="{Binding DoInsertCoin}">
-        <Button.CommandParameter><sys:Int32>50</sys:Int32></Button.CommandParameter>
-        50:-
-    </Button>
-    <Button Classes="Standard" ge:ResponsiveGrid.XS="2" Command="{Binding DoInsertCoin}">
-        <Button.CommandParameter><sys:Int32>100</sys:Int32></Button.CommandParameter>
-        100:-
-    </Button>
-    <Button Classes="Standard" ge:ResponsiveGrid.XS="2" Command="{Binding DoInsertCoin}">
-        <Button.CommandParameter><sys:Int32>500</sys:Int32></Button.CommandParameter>
-        500:-
-    </Button>
-    <Button Classes="Standard" ge:ResponsiveGrid.XS="2" Command="{Binding DoInsertCoin}">
-        <Button.CommandParameter><sys:Int32>1000</sys:Int32></Button.CommandParameter>
-        1000:-
-    </Button>
-    </ge:ResponsiveGrid>
-    </Grid>
-    <Button Classes="Standard" HorizontalAlignment="Center" Width="100" DockPanel.Dock="Bottom" Command="{Binding DoPlaceOrder}" >Place Order</Button>
-    <StackPanel>
-        <ScrollViewer Name="ProductsScrollViewer">
-          <Grid>
-          <Grid.Styles>
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="{x:Type local:StockedProduct}">
+        <ge:ResponsiveGrid Classes="BackgroundHoverEffect">
+            <Border Classes="Common Name BackgroundHoverEffect"><TextBlock Text="{Binding Path=Product.Name}" HorizontalAlignment="Left" VerticalAlignment="Center"/></Border>
+            <Border Classes="Common Description BackgroundHoverEffect"><TextBlock Text="{Binding Path=Product.Description}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+            <Border Classes="Common QuantityInStock BackgroundHoverEffect"><TextBlock Text="{Binding Path=Quantity}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+            <Border Classes="Common QuantityToOrder BackgroundHoverEffect">
+              <NumericUpDown Minimum="0" Maximum="{Binding Path=Quantity}" ClipValueToMinMax="True" ButtonSpinnerLocation="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Tag="{Binding Product}">
+                <!-- <NumericUpDown.Value>
+                  <MultiBinding Target="ShoppingCart" Mode="OneWay" Converter="{StaticResource StockedProductConverter}">
+                    <Binding ElementName="Product"></Binding>
+                    <Binding ElementName="Value"></Binding>
+                  </MultiBinding>
+                </NumericUpDown.Value> -->
+              </NumericUpDown>
+            </Border>
+            <Border Classes="Common Price BackgroundHoverEffect"><TextBlock Text="{Binding Path=Product.RetailPriceWithVAT, StringFormat={}{0:N2} SEK}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+        </ge:ResponsiveGrid>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+  <UserControl.Styles>
                 <Style Selector="Border.Common">
-                    <!-- <Setter Property="BorderBrush" Value="Black" /> -->
-                    <!-- <Setter Property="BorderThickness" Value="1" /> -->
-                    <!-- <Setter Property="Background" Value="Black" /> -->
-                    <!-- <Setter Property="Height" Value="60" /> -->
-                    <Setter Property="Padding" Value="4 4 4 4"/>
+                  <!-- <Setter Property="BorderBrush" Value="Black" /> -->
+                  <!-- <Setter Property="BorderThickness" Value="1" /> -->
+                  <!-- <Setter Property="Background" Value="Black" /> -->
+                  <!-- <Setter Property="Height" Value="60" /> -->
+                  <Setter Property="Padding" Value="6 6 6 6"/>
+                </Style>
+                <Style Selector="Border.VerticalSpacer">
+                  <Setter Property="Padding" Value="0 6 0 6"/>
                 </Style>
                 <Style Selector="Border.Name">
                     <Setter Property="ge:ResponsiveGrid.XS" Value="2" />                    <!-- <Setter Property="ge:ResponsiveGrid.SM" Value="2" /> -->
                     <Setter Property="ge:ResponsiveGrid.SM" Value="2" />
                 </Style>
                 <Style Selector="Border.Description">
-                    <Setter Property="ge:ResponsiveGrid.XS" Value="7" />
-                    <Setter Property="ge:ResponsiveGrid.SM" Value="7" />
+                    <Setter Property="ge:ResponsiveGrid.XS" Value="5" />
+                    <Setter Property="ge:ResponsiveGrid.SM" Value="5" />
                     <!-- <Setter Property="ge:ResponsiveGrid.MD" Value="2" /> -->
                 </Style>
                 <Style Selector="Border.QuantityInStock">
@@ -96,26 +59,119 @@
                     <Setter Property="ge:ResponsiveGrid.SM" Value="2" />
                     <!-- <Setter Property="ge:ResponsiveGrid.MD" Value="1" /> -->
                 </Style>
+                <Style Selector="Border.Price">
+                    <Setter Property="ge:ResponsiveGrid.XS" Value="2" />
+                    <Setter Property="ge:ResponsiveGrid.SM" Value="2" />
+                    <!-- <Setter Property="ge:ResponsiveGrid.MD" Value="1" /> -->
+                </Style>
                 <Style Selector="TextBlock.HeaderText">
                     <Setter Property="FontWeight" Value="Bold"/>
                 </Style>
                 <Style Selector="Border.Separator">
                   <Setter Property="Border.Padding" Value="0 24 0 24"/>
                 </Style>
-                </Grid.Styles>
+                <Style Selector="Border.CustomerMoney">
+                    <Setter Property="ge:ResponsiveGrid.XS" Value="3" />                    <!-- <Setter Property="ge:ResponsiveGrid.SM" Value="2" /> -->
+                    <Setter Property="ge:ResponsiveGrid.SM" Value="3" />
+                </Style>
+                <Style Selector="Border.Balance">
+                    <Setter Property="ge:ResponsiveGrid.XS" Value="3" />
+                    <Setter Property="ge:ResponsiveGrid.SM" Value="3" />
+                    <!-- <Setter Property="ge:ResponsiveGrid.MD" Value="2" /> -->
+                </Style>
+                <Style Selector="Border.VendingMachineProfit">
+                    <Setter Property="ge:ResponsiveGrid.XS" Value="3" />
+                    <Setter Property="ge:ResponsiveGrid.SM" Value="3" />
+                </Style>
+                <Style Selector="Border.TotalCartCost">
+                    <Setter Property="ge:ResponsiveGrid.XS" Value="3" />
+                    <Setter Property="ge:ResponsiveGrid.SM" Value="3" />
+                    <!-- <Setter Property="ge:ResponsiveGrid.MD" Value="1" /> -->
+                </Style>
+                <Style Selector="Border.HorizontalSpacer">
+                    <Setter Property="ge:ResponsiveGrid.XS" Value="1" />
+                    <Setter Property="ge:ResponsiveGrid.SM" Value="1" />
+                    <!-- <Setter Property="ge:ResponsiveGrid.MD" Value="1" /> -->
+                </Style>
+  </UserControl.Styles>
+  <DockPanel>
+    <Grid DockPanel.Dock="Top">
+      <ge:ResponsiveGrid>
+      <Border Classes="HorizontalSpacer"></Border>
+      <Border Classes="HorizontalSpacer"></Border>
+      <Border Classes="HorizontalSpacer"></Border>
+      <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" ge:ResponsiveGrid.XS="6">
+      <Border Classes="Common"><Button HorizontalAlignment="Left" Command="{Binding DoInsertCoin1}">
+          <Button.CommandParameter><sys:Int32>1</sys:Int32></Button.CommandParameter>
+           1:- 
+      </Button></Border>
+      <Border Classes="Common"><Button HorizontalAlignment="Left" Command="{Binding DoInsertCoin5}">
+          <Button.CommandParameter><sys:Int32>5</sys:Int32></Button.CommandParameter>
+           5:- 
+      </Button></Border>
+      <Border Classes="Common"><Button HorizontalAlignment="Center" Command="{Binding DoInsertCoin10}">
+          <Button.CommandParameter><sys:Int32>10</sys:Int32></Button.CommandParameter>
+           10:-
+      </Button></Border>
+      <Border Classes="Common"><Button HorizontalAlignment="Center" Command="{Binding DoInsertCoin20}">
+          <Button.CommandParameter><sys:Int32>20</sys:Int32></Button.CommandParameter>
+          20:- 
+      </Button></Border>
+      <Border Classes="Common"><Button HorizontalAlignment="Center" Command="{Binding DoInsertCoin50}">
+          <Button.CommandParameter><sys:Int32>50</sys:Int32></Button.CommandParameter>
+           50:- 
+      </Button></Border>
+      <Border Classes="Common"><Button HorizontalAlignment="Center" Command="{Binding DoInsertCoin100}">
+          <Button.CommandParameter><sys:Int32>100</sys:Int32></Button.CommandParameter>
+           100:- 
+      </Button></Border>
+      <Border Classes="Common"><Button HorizontalAlignment="Center" Command="{Binding DoInsertCoin500}">
+          <Button.CommandParameter><sys:Int32>500</sys:Int32></Button.CommandParameter>
+           500:- 
+      </Button></Border>
+      <Border Classes="Common"><Button HorizontalAlignment="Right" Command="{Binding DoInsertCoin1000}">
+          <Button.CommandParameter><sys:Int32>1000</sys:Int32></Button.CommandParameter>
+           1000:- 
+      </Button></Border>
+      </StackPanel>
+      <Border Classes="HorizontalSpacer"></Border>
+      <Border Classes="HorizontalSpacer"></Border>
+      <Border Classes="HorizontalSpacer"></Border>
+      </ge:ResponsiveGrid>
+    </Grid>
+    <!-- <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"> -->
+    <!-- </StackPanel> -->
+    <StackPanel>
+          <Grid>
                 <ge:ResponsiveGrid>
                   <Border Classes="Common Name"><TextBlock Classes="HeaderText" Text=" Product" HorizontalAlignment="Left" VerticalAlignment="Center"/></Border>
                   <Border Classes="Common Description"><TextBlock Classes="HeaderText" Text="Description" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                   <Border Classes="Common QuantityInStock"><TextBlock Classes="HeaderText" Text="Stock" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                   <Border Classes="Common QuantityToOrder"><TextBlock Classes="HeaderText" Text="Amount " HorizontalAlignment="Right" VerticalAlignment="Center"/> </Border>
+                  <Border Classes="Common Price"><TextBlock Classes="HeaderText" Text="Price" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                   <Border Classes="Separator" Height="2" Background="Pink"><Line/></Border>
-                <ItemsPresenter
-                  Items="{Binding StockedProducts, Mode=OneWay}"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                </ItemsPresenter>
+                  <ScrollViewer MaxHeight="300" Name="ProductsScrollViewer">
+                    <ItemsPresenter
+                      Items="{Binding StockedProducts, Mode=OneWay}"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    </ItemsPresenter>
+                  </ScrollViewer>
             </ge:ResponsiveGrid>
           </Grid>
-        </ScrollViewer>
+        <Grid>
+          <ge:ResponsiveGrid>
+                  <Border Classes="Separator" Height="2" Background="Pink"><Line/></Border>
+                  <Border HorizontalAlignment="Left" Classes="Common CustomerMoney"><TextBlock Classes="" Text="{Binding Customer.Money, StringFormat={}Pocket Money: {0:N2} SEK}" HorizontalAlignment="Left" VerticalAlignment="Top"/></Border>
+                  <Border HorizontalAlignment="Center" Classes="Common Balance"><TextBlock Classes="" Text="{Binding MoneyBalance, StringFormat={}Machine Credit: {0:N2} SEK}" HorizontalAlignment="Center" VerticalAlignment="Top"/></Border>
+                  <!-- <Border Classes="HorizontalSpacer"></Border> -->
+                  <!-- <Border Classes="HorizontalSpacer"></Border> -->
+                  <Border HorizontalAlignment="Center" Classes="Common VendingMachineProfit"><TextBlock Classes="" Text="{Binding BackingMachine.ProfitExcludingCurrentStockOutlay, StringFormat={}Machine Profit: {0:N2} SEK}" HorizontalAlignment="Center" VerticalAlignment="Top"/></Border>
+                  <Border HorizontalAlignment="Right" Classes="Common TotalCartCost"><StackPanel VerticalAlignment="Top" Orientation="Vertical">
+                  <TextBlock Classes="Common" Text="{Binding CostOfCart, StringFormat={}Total cost: {0:N2} SEK}" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                  <Border Classes="VerticalSpacer"></Border>
+                  <Button Classes="Common" HorizontalAlignment="Right" Width="100"  Command="{Binding DoPlaceOrder}" VerticalAlignment="Bottom" >Place Order</Button></StackPanel></Border>
+          </ge:ResponsiveGrid>
+        </Grid>
     </StackPanel>
   </DockPanel>
 </UserControl>
